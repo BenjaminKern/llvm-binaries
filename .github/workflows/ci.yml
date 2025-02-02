@@ -1,0 +1,69 @@
+name: CI
+
+on:
+  # Triggers the workflow on push or pull request events but only for the "main" branch
+  # push:
+  #   branches: [ "main" ]
+  # pull_request:
+  #   branches: [ "main" ]
+
+  workflow_dispatch:
+
+jobs:
+  all:
+    if: always()
+    name: all-jobs
+    runs-on: ubuntu-latest
+    needs:
+      - container_build
+      - build
+    steps:
+      - run: jq --exit-status 'all(.result == "success")' <<< '${{ toJson(needs) }}'
+
+  container_build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        job:
+          - { suffix: x86_64-linux , os: ubuntu, variant: 20.04 }
+
+    container:
+      image: ghcr.io/benjaminkern/ci-images/${{ matrix.job.os  }}/${{ matrix.job.variant }}:main
+      credentials:
+         username: ${{ github.actor }}
+         password: ${{ secrets.github_token }}
+
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build lldb.tar.gz
+        shell: bash
+        run: |
+          if [[ ${{ matrix.job.variant }} = 20.04 ]]
+          then
+            bazelisk build -c opt --config=ci --config=focal //pkg:lldb_pkg
+          else
+            bazelisk build -c opt --config=ci //pkg:lldb_pkg
+          fi
+      - name: Upload
+        uses: actions/upload-artifact@v4
+        with:
+          name: lldb-${{ matrix.job.suffix }}
+          path: bazel-bin/pkg/lldb_pkg.tar.gz
+
+  build:
+    runs-on: ${{ matrix.job.os }}
+    strategy:
+      matrix:
+        job:
+          - { suffix: x86_64-macos , os: macos-13 }
+          - { suffix: aarch64-macos , os: macos-14 }
+
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build lldb.tar.gz
+        run: bazelisk build -c opt --config=ci //pkg:lldb_pkg
+      - name: Upload
+        uses: actions/upload-artifact@v4
+        with:
+          name: lldb-${{ matrix.job.suffix }}
+          path: bazel-bin/pkg/lldb_pkg.tar.gz

@@ -1,0 +1,5 @@
+# SPDX-License-Identifier: MIT
+# Copyright (c) 2025 Benjamin Kern
+
+LLVM_VERSION = "19.1.7"
+LLVM_SHA256 = "82401fea7b79d0078043f7598b835284d6650a75b93e64b6f761ea7b63097501"
