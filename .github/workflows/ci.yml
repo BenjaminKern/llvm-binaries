@@ -6,7 +6,9 @@ on:
   #   branches: [ "main" ]
   # pull_request:
   #   branches: [ "main" ]
-
+  push:
+    tags:
+      - "v*.*.*"
   workflow_dispatch:
 
 jobs:
@@ -17,8 +19,35 @@ jobs:
     needs:
       - container_build
       - build
+      - release
     steps:
       - run: jq --exit-status 'all(.result == "success")' <<< '${{ toJson(needs) }}'
+
+  release:
+    runs-on: ubuntu-latest
+    needs:
+      - container_build
+      - build
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - name: Fetch artifacts
+        uses: actions/download-artifact@v4
+        with:
+          pattern: artifact-*
+          merge-multiple: true
+      - name: Release
+        uses: softprops/action-gh-release@v2
+        if: startsWith(github.ref, 'refs/tags/v')
+        with:
+          files: |
+            *.zip
+            *.tar.gz
+          draft: true
+          generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   container_build:
     runs-on: ubuntu-latest
@@ -44,11 +73,13 @@ jobs:
           else
             bazelisk build -c opt --config=ci //pkg:lldb_pkg
           fi
+      - name: Copy to workspace
+        run: cp bazel-bin/pkg/lldb_pkg.tar.gz lldb-${{ matrix.job.suffix }}.tar.gz
       - name: Upload
         uses: actions/upload-artifact@v4
         with:
-          name: lldb-${{ matrix.job.suffix }}
-          path: bazel-bin/pkg/lldb_pkg.tar.gz
+          name: artifact-lldb-${{ matrix.job.suffix }}
+          path: lldb-${{ matrix.job.suffix }}.tar.gz
 
   build:
     runs-on: ${{ matrix.job.os }}
@@ -62,8 +93,10 @@ jobs:
       - uses: actions/checkout@v4
       - name: Build lldb.tar.gz
         run: bazelisk build -c opt --config=ci //pkg:lldb_pkg
+      - name: Copy to workspace
+        run: cp bazel-bin/pkg/lldb_pkg.tar.gz lldb-${{ matrix.job.suffix }}.tar.gz
       - name: Upload
         uses: actions/upload-artifact@v4
         with:
-          name: lldb-${{ matrix.job.suffix }}
-          path: bazel-bin/pkg/lldb_pkg.tar.gz
+          name: artifact-lldb-${{ matrix.job.suffix }}
+          path: lldb-${{ matrix.job.suffix }}.tar.gz
