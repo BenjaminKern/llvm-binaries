@@ -14,6 +14,7 @@ pkg_tar(
     srcs = [
         ":lldb",
         ":lldb-dap",
+        "@llvm-project//lldb:LICENSE.TXT",
         "@llvm-project//lldb:lldb-argdumper",
         "@llvm-project//lldb:lldb-server",
         "@llvm-project//lldb:lldb{version}None".format(version = LLVM_VERSION),
