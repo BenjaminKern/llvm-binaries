@@ -27,11 +27,9 @@ build:focal --repo_env=CC=clang-18
 build:focal --repo_env=CXX=clang++-18
 build:focal --linkopt=-fuse-ld=lld --host_linkopt=-fuse-ld=lld
 
-build:ci --noshow_progress
-build:ci --noshow_loading_progress
+build:ci --announce_rc
+build:ci --show_timestamps
 
-# Show only errors and warnings
-build:ci --ui_event_filters=error,warning,finish
+build:ci --show_progress_rate_limit=60
 
-# Disable color output, not working on ci anyways
-build:ci --color=no
+build:ci --color=yes
