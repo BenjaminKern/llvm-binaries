@@ -13,6 +13,10 @@ load("@version_info//:version.bzl", "LLVM_SHA256", "LLVM_VERSION")
 http_archive(
     name = "llvm-raw",
     build_file_content = "# empty",
+    patch_strip = 1,
+    patches = [
+        "//patches/20.1.1:missing_max_clang_abi_compat_version.patch",
+    ],
     sha256 = LLVM_SHA256,
     strip_prefix = "llvm-project-{version}.src".format(version = LLVM_VERSION),
     urls = ["https://github.com/llvm/llvm-project/releases/download/llvmorg-{version}/llvm-project-{version}.src.tar.xz".format(version = LLVM_VERSION)],
