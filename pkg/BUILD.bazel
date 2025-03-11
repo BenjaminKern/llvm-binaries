@@ -7,7 +7,7 @@ load("//tools:patch_binary.bzl", "patch_binary")
 
 patch_binary("lldb", "@llvm-project//lldb:lldb")
 
-patch_binary("lldb-dap", "@llvm-project//lldb/tools/lldb-dap:lldb-dap")
+patch_binary("lldb-dap", "@llvm-project//lldb:lldb-dap")
 
 pkg_tar(
     name = "lldb_pkg",
