@@ -7,7 +7,7 @@ load("//tools:patch_binary.bzl", "patch_binary")
 
 patch_binary("lldb", "@llvm-project//lldb:lldb")
 
-patch_binary("lldb-dap", "@llvm-project//lldb/tools/lldb-dap:lldb-dap")
+patch_binary("lldb-dap", "@llvm-project//lldb:lldb-dap")
 
 pkg_tar(
     name = "lldb_pkg",
@@ -20,6 +20,14 @@ pkg_tar(
         "@llvm-project//lldb:lldb{version}None".format(version = LLVM_VERSION),
     ],
     extension = "tar.gz",
-    tags = ["manual"],
+    visibility = ["//visibility:public"],
+)
+
+pkg_tar(
+    name = "lld_pkg",
+    srcs = [
+        "@llvm-project//lld:lld",
+    ],
+    extension = "tar.gz",
     visibility = ["//visibility:public"],
 )
